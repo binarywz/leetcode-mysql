@@ -266,3 +266,89 @@ FROM Employee e JOIN (SELECT DISTINCT Id, Salary FROM Employee) m
 WHERE e.Salary  > m.Salary;
 ```
 
+### [182. 查找重复的电子邮箱](https://leetcode-cn.com/problems/duplicate-emails/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Person (Id int, Email varchar(255));
+Truncate table Person;
+insert into Person (Id, Email) values ('1', 'a@b.com');
+insert into Person (Id, Email) values ('2', 'c@d.com');
+insert into Person (Id, Email) values ('3', 'a@b.com');
+
+-- 编写一个 SQL 查询，查找 Person 表中所有重复的电子邮箱
++----+---------+
+| Id | Email   |
++----+---------+
+| 1  | a@b.com |
+| 2  | c@d.com |
+| 3  | a@b.com |
++----+---------+
+
+-- 根据以上输入，，你的查询应返回以下结果：
+-- 说明：所有电子邮箱都是小写字母。
++---------+
+| Email   |
++---------+
+| a@b.com |
++---------+
+
+-- SQL语句
+SELECT e.em AS Email FROM
+(SELECT CASE WHEN COUNT(*) > 1 THEN Email END AS em
+FROM Person GROUP BY Email) AS e
+WHERE e.em IS NOT NULL;
+
+SELECT Email FROM Person GROUP BY Email HAVING COUNT(1) > 1;
+```
+
+### [183. 从不订购的客户](https://leetcode-cn.com/problems/customers-who-never-order/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Customers (Id int, Name varchar(255));
+Create table If Not Exists Orders (Id int, CustomerId int);
+Truncate table Customers;
+insert into Customers (Id, Name) values ('1', 'Joe');
+insert into Customers (Id, Name) values ('2', 'Henry');
+insert into Customers (Id, Name) values ('3', 'Sam');
+insert into Customers (Id, Name) values ('4', 'Max');
+Truncate table Orders;
+insert into Orders (Id, CustomerId) values ('1', '3');
+insert into Orders (Id, CustomerId) values ('2', '1');
+
+-- 某网站包含两个表，Customers表和Orders表。编写一个SQL查询，找出所有从不订购任何东西的客户
+-- Customers表：
++----+-------+
+| Id | Name  |
++----+-------+
+| 1  | Joe   |
+| 2  | Henry |
+| 3  | Sam   |
+| 4  | Max   |
++----+-------+
+-- Orders表：
++----+------------+
+| Id | CustomerId |
++----+------------+
+| 1  | 3          |
+| 2  | 1          |
++----+------------+
+
+-- 例如给定上述表格，你的查询应返回：
++-----------+
+| Customers |
++-----------+
+| Henry     |
+| Max       |
++-----------+
+
+-- SQL语句
+SELECT Name AS Customers FROM customers WHERE Id NOT IN (SELECT CustomerId FROM orders);
+
+-- 使用完全限定列名查询速度会快
+SELECT c.Name AS Customers FROM Customers c WHERE c.Id NOT IN (SELECT CustomerId FROM orders);
+
+SELECT c.Name Customer FROM Customers c LEFT JOIN Orders o ON c.Id = o.CustomerId WHERE o.Id IS NULL;
+```
+
