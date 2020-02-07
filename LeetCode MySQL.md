@@ -352,3 +352,136 @@ SELECT c.Name AS Customers FROM Customers c WHERE c.Id NOT IN (SELECT CustomerId
 SELECT c.Name Customer FROM Customers c LEFT JOIN Orders o ON c.Id = o.CustomerId WHERE o.Id IS NULL;
 ```
 
+### [184. 部门工资最高的员工](https://leetcode-cn.com/problems/department-highest-salary/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Employee (Id int, Name varchar(255), Salary int, DepartmentId int);
+Create table If Not Exists Department (Id int, Name varchar(255));
+Truncate table Employee;
+insert into Employee (Id, Name, Salary, DepartmentId) values ('1', 'Joe', '70000', '1');
+insert into Employee (Id, Name, Salary, DepartmentId) values ('2', 'Jim', '90000', '1');
+insert into Employee (Id, Name, Salary, DepartmentId) values ('3', 'Henry', '80000', '2');
+insert into Employee (Id, Name, Salary, DepartmentId) values ('4', 'Sam', '60000', '2');
+insert into Employee (Id, Name, Salary, DepartmentId) values ('5', 'Max', '90000', '1');
+Truncate table Department;
+insert into Department (Id, Name) values ('1', 'IT');
+insert into Department (Id, Name) values ('2', 'Sales');
+
+-- Employee表包含所有员工信息，每个员工有其对应的Id, salary和department Id
++----+-------+--------+--------------+
+| Id | Name  | Salary | DepartmentId |
++----+-------+--------+--------------+
+| 1  | Joe   | 70000  | 1            |
+| 2  | Henry | 80000  | 2            |
+| 3  | Sam   | 60000  | 2            |
+| 4  | Max   | 90000  | 1            |
++----+-------+--------+--------------+
+
+-- Department 表包含公司所有部门的信息
++----+----------+
+| Id | Name     |
++----+----------+
+| 1  | IT       |
+| 2  | Sales    |
++----+----------+
+
+-- 编写一个SQL查询，找出每个部门工资最高的员工。例如，根据上述给定的表格，Max在IT部门有最高工资，Henry在Sales部门有最高工资
++------------+----------+--------+
+| Department | Employee | Salary |
++------------+----------+--------+
+| IT         | Max      | 90000  |
+| Sales      | Henry    | 80000  |
++------------+----------+--------+
+
+-- SQL-1
+SELECT d.Name AS Department, e1.Name Employee, e1.Salary Salary
+FROM Employee e1 JOIN Department d ON e1.DepartmentId = d.Id
+WHERE Salary=(SELECT MAX(Salary) FROM Employee e2 WHERE e1.DepartmentId=e2.DepartmentId);
+
+-- SQL-2
+SELECT
+	Department.NAME AS Department,
+	Employee.NAME AS Employee,
+	Salary 
+FROM
+	Employee,
+	Department 
+WHERE
+	Employee.DepartmentId = Department.Id 
+	AND ( Employee.DepartmentId, Salary ) 
+    IN (SELECT DepartmentId, max( Salary ) 
+        FROM Employee 
+        GROUP BY DepartmentId );
+
+-- SQL-3
+SELECT
+	Department.NAME AS Department,
+	Employee.NAME AS Employee,
+	Salary 
+FROM
+	Employee JOIN Department ON Employee.DepartmentId = Department.Id
+WHERE 
+	(Employee.DepartmentId, Salary) 
+    IN (SELECT DepartmentId, MAX(Salary) 
+        FROM Employee
+        GROUP BY DepartmentId);
+```
+
+### [511. 游戏玩法分析 I](https://leetcode-cn.com/problems/game-play-analysis-i/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Activity (player_id int, device_id int, event_date date, games_played int);
+Truncate table Activity;
+insert into Activity (player_id, device_id, event_date, games_played) values ('1', '2', '2016-03-01', '5');
+insert into Activity (player_id, device_id, event_date, games_played) values ('1', '2', '2016-05-02', '6');
+insert into Activity (player_id, device_id, event_date, games_played) values ('2', '3', '2017-06-25', '1');
+insert into Activity (player_id, device_id, event_date, games_played) values ('3', '1', '2016-03-02', '0');
+insert into Activity (player_id, device_id, event_date, games_played) values ('3', '4', '2018-07-03', '5');
+
+-- 活动表Activity
+-- 表的主键是 (player_id, event_date)。这张表展示了一些游戏玩家在游戏平台上的行为活动。每行数据记录了一名玩家在退出平台之前，当天使用同一台设备登录平台后打开的游戏的数目（可能是 0 个）。
++--------------+---------+
+| Column Name  | Type    |
++--------------+---------+
+| player_id    | int     |
+| device_id    | int     |
+| event_date   | date    |
+| games_played | int     |
++--------------+---------+
+
+-- 写一条 SQL 查询语句获取每位玩家 第一次登陆平台的日期。查询结果的格式如下所示：
+
+-- Activity 表：
++-----------+-----------+------------+--------------+
+| player_id | device_id | event_date | games_played |
++-----------+-----------+------------+--------------+
+| 1         | 2         | 2016-03-01 | 5            |
+| 1         | 2         | 2016-05-02 | 6            |
+| 2         | 3         | 2017-06-25 | 1            |
+| 3         | 1         | 2016-03-02 | 0            |
+| 3         | 4         | 2018-07-03 | 5            |
++-----------+-----------+------------+--------------+
+
+-- Result 表：
++-----------+-------------+
+| player_id | first_login |
++-----------+-------------+
+| 1         | 2016-03-01  |
+| 2         | 2017-06-25  |
+| 3         | 2016-03-02  |
++-----------+-------------+
+
+-- SQL-1
+SELECT player_id, event_date AS first_login
+FROM activity
+WHERE (player_id, event_date)
+IN (SELECT player_id, MIN(event_date) FROM activity GROUP BY player_id);
+
+-- SQL-2
+SELECT DISTINCT player_id, MIN(event_date) AS first_login
+FROM Activity
+GROUP BY player_id;
+```
+
