@@ -599,3 +599,121 @@ FROM
     (SELECT @cnt := 0, @prev := null) t;
 ```
 
+### [550. 游戏玩法分析 IV](https://leetcode-cn.com/problems/game-play-analysis-iv/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Activity (player_id int, device_id int, event_date date, games_played int);
+Truncate table Activity;
+insert into Activity (player_id, device_id, event_date, games_played) values ('1', '2', '2016-03-01', '5');
+insert into Activity (player_id, device_id, event_date, games_played) values ('1', '2', '2016-03-02', '6');
+insert into Activity (player_id, device_id, event_date, games_played) values ('2', '3', '2017-06-25', '1');
+insert into Activity (player_id, device_id, event_date, games_played) values ('3', '1', '2016-03-02', '0');
+insert into Activity (player_id, device_id, event_date, games_played) values ('3', '4', '2018-07-03', '5');
+
+-- 活动表Activity
+-- 表的主键是 (player_id, event_date)。这张表展示了一些游戏玩家在游戏平台上的行为活动。每行数据记录了一名玩家在退出平台之前，当天使用同一台设备登录平台后打开的游戏的数目（可能是 0 个）。
++--------------+---------+
+| Column Name  | Type    |
++--------------+---------+
+| player_id    | int     |
+| device_id    | int     |
+| event_date   | date    |
+| games_played | int     |
++--------------+---------+
+
+-- 编写一个 SQL 查询，报告在首次登录的第二天再次登录的玩家的分数，四舍五入到小数点后两位。换句话说，您需要计算从首次登录日期开始至少连续两天登录的玩家的数量，然后除以玩家总数。查询结果格式如下所示：
+Activity table:
++-----------+-----------+------------+--------------+
+| player_id | device_id | event_date | games_played |
++-----------+-----------+------------+--------------+
+| 1         | 2         | 2016-03-01 | 5            |
+| 1         | 2         | 2016-03-02 | 6            |
+| 2         | 3         | 2017-06-25 | 1            |
+| 3         | 1         | 2016-03-02 | 0            |
+| 3         | 4         | 2018-07-03 | 5            |
++-----------+-----------+------------+--------------+
+
+Result table:
++-----------+
+| fraction  |
++-----------+
+| 0.33      |
++-----------+
+只有 ID 为 1 的玩家在第一天登录后才重新登录，所以答案是 1/3 = 0.33
+
+-- SQL
+SELECT ROUND(
+    (SELECT 
+     	COUNT(a1.player_id)
+	FROM
+    	activity a1 JOIN activity a2 ON DATEDIFF(a2.event_date, a1.event_date) = 1 AND a1.player_id = a2.player_id
+    WHERE
+     	(a1.player_id, a1.event_date) 
+    IN 
+     	(SELECT
+         	DISTINCT player_id, MIN(event_date)
+         FROM
+         	activity
+         GROUP BY
+         	player_id)) / 
+	(SELECT
+     	COUNT(DISTINCT player_id)
+     FROM
+     	activity)
+, 2) AS fraction;
+```
+
+### [570. 至少有5名直接下属的经理](https://leetcode-cn.com/problems/managers-with-at-least-5-direct-reports/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Employee (Id int, Name varchar(255), Department varchar(255), ManagerId int);
+Truncate table Employee;
+insert into Employee (Id, Name, Department, ManagerId) values ('101', 'John', 'A', NULL);
+insert into Employee (Id, Name, Department, ManagerId) values ('102', 'Dan', 'A', '101');
+insert into Employee (Id, Name, Department, ManagerId) values ('103', 'James', 'A', '101');
+insert into Employee (Id, Name, Department, ManagerId) values ('104', 'Amy', 'A', '101');
+insert into Employee (Id, Name, Department, ManagerId) values ('105', 'Anne', 'A', '101');
+insert into Employee (Id, Name, Department, ManagerId) values ('106', 'Ron', 'B', '101');
+
+-- Employee表包含所有员工和他们的经理。每个员工都有一个Id，并且还有一列是经理的Id
++------+----------+-----------+----------+
+|Id    |Name 	  |Department |ManagerId |
++------+----------+-----------+----------+
+|101   |John 	  |A 	      |null      |
+|102   |Dan 	  |A 	      |101       |
+|103   |James 	  |A 	      |101       |
+|104   |Amy 	  |A 	      |101       |
+|105   |Anne 	  |A 	      |101       |
+|106   |Ron 	  |B 	      |101       |
++------+----------+-----------+----------+
+
+-- 给定Employee表，请编写一个SQL查询来查找至少有5名直接下属的经理。对于上表，您的SQL查询应该返回：
+-- 注意:没有人是自己的下属。
++-------+
+| Name  |
++-------+
+| John  |
++-------+
+
+-- SQL
+SELECT
+    Name
+FROM 
+    employee
+WHERE 
+    Id
+IN
+    (SELECT 
+        ManagerId
+    FROM
+        employee
+    WHERE
+        ManagerId IS NOT NULL
+    GROUP BY
+        ManagerId
+    HAVING
+        COUNT(ManagerId) >= 5);
+```
+
