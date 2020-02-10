@@ -717,3 +717,117 @@ IN
         COUNT(ManagerId) >= 5);
 ```
 
+### [574. 当选者](https://leetcode-cn.com/problems/winning-candidate/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Candidate (id int, Name varchar(255));
+Create table If Not Exists Vote (id int, CandidateId int);
+Truncate table Candidate;
+insert into Candidate (id, Name) values ('1', 'A');
+insert into Candidate (id, Name) values ('2', 'B');
+insert into Candidate (id, Name) values ('3', 'C');
+insert into Candidate (id, Name) values ('4', 'D');
+insert into Candidate (id, Name) values ('5', 'E');
+Truncate table Vote;
+insert into Vote (id, CandidateId) values ('1', '2');
+insert into Vote (id, CandidateId) values ('2', '4');
+insert into Vote (id, CandidateId) values ('3', '3');
+insert into Vote (id, CandidateId) values ('4', '2');
+insert into Vote (id, CandidateId) values ('5', '5');
+
+-- 表: Candidate
++-----+---------+
+| id  | Name    |
++-----+---------+
+| 1   | A       |
+| 2   | B       |
+| 3   | C       |
+| 4   | D       |
+| 5   | E       |
++-----+---------+  
+
+-- 表: Vote
++-----+--------------+
+| id  | CandidateId  |
++-----+--------------+
+| 1   |     2        |
+| 2   |     4        |
+| 3   |     3        |
+| 4   |     2        |
+| 5   |     5        |
++-----+--------------+
+id 是自动递增的主键，
+CandidateId 是 Candidate 表中的 id.
+
+-- 请编写sql语句来找到当选者的名字，上面的例子将返回当选者B.
++------+
+| Name |
++------+
+| B    |
++------+
+
+-- 注意:你可以假设没有平局，换言之，最多只有一位当选者。
+
+-- SQL
+SELECT Name
+FROM candidate
+WHERE id = (SELECT CandidateId
+            FROM (SELECT CandidateId, COUNT(CandidateId) count 
+                  FROM vote
+                  GROUP BY CandidateId
+                  ORDER BY count DESC LIMIT 0, 1) t);
+```
+
+### [577. 员工奖金](https://leetcode-cn.com/problems/employee-bonus/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists Employee (EmpId int, Name varchar(255), Supervisor int, Salary int);
+Create table If Not Exists Bonus (EmpId int, Bonus int);
+Truncate table Employee;
+insert into Employee (EmpId, Name, Supervisor, Salary) values ('3', 'Brad', NULL, '4000');
+insert into Employee (EmpId, Name, Supervisor, Salary) values ('1', 'John', '3', '1000');
+insert into Employee (EmpId, Name, Supervisor, Salary) values ('2', 'Dan', '3', '2000');
+insert into Employee (EmpId, Name, Supervisor, Salary) values ('4', 'Thomas', '3', '4000');
+Truncate table Bonus;
+insert into Bonus (EmpId, Bonus) values ('2', '500');
+insert into Bonus (EmpId, Bonus) values ('4', '2000');
+
+-- 选出所有 bonus < 1000 的员工的 name 及其 bonus。
+
+Employee 表单
++-------+--------+-----------+--------+
+| empId |  name  | supervisor| salary |
++-------+--------+-----------+--------+
+|   1   | John   |  3        | 1000   |
+|   2   | Dan    |  3        | 2000   |
+|   3   | Brad   |  null     | 4000   |
+|   4   | Thomas |  3        | 4000   |
++-------+--------+-----------+--------+
+empId 是这张表单的主关键字
+
+Bonus 表单
++-------+-------+
+| empId | bonus |
++-------+-------+
+| 2     | 500   |
+| 4     | 2000  |
++-------+-------+
+empId 是这张表单的主关键字
+
+-- 输出示例：
++-------+-------+
+| name  | bonus |
++-------+-------+
+| John  | null  |
+| Dan   | 500   |
+| Brad  | null  |
++-------+-------+
+
+-- SQL
+SELECT e.Name name, b.bonus bonus
+FROM employee e LEFT JOIN bonus b ON e.empId = b.empId
+WHERE b.bonus < 1000 OR b.bonus IS NULL;
+```
+
