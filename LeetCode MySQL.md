@@ -831,3 +831,110 @@ FROM employee e LEFT JOIN bonus b ON e.empId = b.empId
 WHERE b.bonus < 1000 OR b.bonus IS NULL;
 ```
 
+### [578. 查询回答率最高的问题](https://leetcode-cn.com/problems/get-highest-answer-rate-question/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists survey_log (id int, action varchar(255), question_id int, answer_id int, q_num int, timestamp int);
+Truncate table survey_log;
+insert into survey_log (id, action, question_id, answer_id, q_num, timestamp) values ('5', 'show', '285', NULL, '1', '123');
+insert into survey_log (id, action, question_id, answer_id, q_num, timestamp) values ('5', 'answer', '285', '124124', '1', '124');
+insert into survey_log (id, action, question_id, answer_id, q_num, timestamp) values ('5', 'show', '369', NULL, '2', '125');
+insert into survey_log (id, action, question_id, answer_id, q_num, timestamp) values ('5', 'skip', '369', NULL, '2', '126');
+
+-- 从 survey_log 表中获得回答率最高的问题，survey_log 表包含这些列：uid, action, question_id, answer_id, q_num, timestamp。
+-- uid 表示用户 id；action 有以下几种值："show"，"answer"，"skip"；当 action 值为 "answer" 时 answer_id 非空，而 action 值为 "show" 或者 "skip" 时 answer_id 为空；q_num 表示当前会话中问题的编号。请编写SQL查询来找到具有最高回答率的问题。
+
+示例:
+输入:
++------+-----------+--------------+------------+-----------+------------+
+| uid  | action    | question_id  | answer_id  | q_num     | timestamp  |
++------+-----------+--------------+------------+-----------+------------+
+| 5    | show      | 285          | null       | 1         | 123        |
+| 5    | answer    | 285          | 124124     | 1         | 124        |
+| 5    | show      | 369          | null       | 2         | 125        |
+| 5    | skip      | 369          | null       | 2         | 126        |
++------+-----------+--------------+------------+-----------+------------+
+输出:
++-------------+
+| survey_log  |
++-------------+
+|    285      |
++-------------+
+-- 解释:问题285的回答率为 1/1，而问题369回答率为 0/1，因此输出285。
+-- 注意: 回答率最高的含义是：同一问题编号中回答数占显示数的比例。
+
+-- SQL
+-- 题目理解：对于每道题来说，不管被回答多少次，题目数量就是1，也就是分母是1， 那么将题目转化为求每道题被回答的次数，也就是answer_id不为NULL的次数
+SELECT question_id survey_log FROM survey_log 
+WHERE answer_id IS NOT NULL
+GROUP BY question_id
+ORDER BY COUNT(answer_id) DESC
+LIMIT 1;
+```
+
+### [580. 统计各专业学生人数](https://leetcode-cn.com/problems/count-student-number-in-departments/)
+
+```mysql
+-- SQL架构
+CREATE TABLE IF NOT EXISTS student (student_id INT,student_name VARCHAR(45), gender VARCHAR(6), dept_id INT);
+CREATE TABLE IF NOT EXISTS department (dept_id INT, dept_name VARCHAR(255));
+Truncate table student;
+insert into student (student_id, student_name, gender, dept_id) values ('1', 'Jack', 'M', '1');
+insert into student (student_id, student_name, gender, dept_id) values ('2', 'Jane', 'F', '1');
+insert into student (student_id, student_name, gender, dept_id) values ('3', 'Mark', 'M', '2');
+Truncate table department;
+insert into department (dept_id, dept_name) values ('1', 'Engineering');
+insert into department (dept_id, dept_name) values ('2', 'Science');
+insert into department (dept_id, dept_name) values ('3', 'Law');
+
+-- 一所大学有 2 个数据表，分别是 student 和 department ，这两个表保存着每个专业的学生数据和院系数据。写一个查询语句，查询 department 表中每个专业的学生人数 （即使没有学生的专业也需列出）。将你的查询结果按照学生人数降序排列。 如果有两个或两个以上专业有相同的学生数目，将这些部门按照部门名字的字典序从小到大排列。
+
+student 表格如下：
+
+| Column Name  | Type      |
+|--------------|-----------|
+| student_id   | Integer   |
+| student_name | String    |
+| gender       | Character |
+| dept_id      | Integer   |
+其中， student_id 是学生的学号， student_name 是学生的姓名， gender 是学生的性别， dept_id 是学生所属专业的专业编号。
+
+department 表格如下：
+
+| Column Name | Type    |
+|-------------|---------|
+| dept_id     | Integer |
+| dept_name   | String  |
+dept_id 是专业编号， dept_name 是专业名字。
+
+这里是一个示例输入：
+student 表格：
+
+| student_id | student_name | gender | dept_id |
+|------------|--------------|--------|---------|
+| 1          | Jack         | M      | 1       |
+| 2          | Jane         | F      | 1       |
+| 3          | Mark         | M      | 2       |
+department 表格：
+
+| dept_id | dept_name   |
+|---------|-------------|
+| 1       | Engineering |
+| 2       | Science     |
+| 3       | Law         |
+示例输出为：
+
+| dept_name   | student_number |
+|-------------|----------------|
+| Engineering | 2              |
+| Science     | 1              |
+| Law         | 0              |
+
+-- SQL
+SELECT d.dept_name, COUNT(student_id) AS student_number
+FROM department d LEFT JOIN student s ON s.dept_id = d.dept_id
+GROUP BY dept_name
+ORDER BY student_number DESC, d.dept_name;
+```
+
