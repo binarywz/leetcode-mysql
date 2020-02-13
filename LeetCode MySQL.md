@@ -938,3 +938,86 @@ GROUP BY dept_name
 ORDER BY student_number DESC, d.dept_name;
 ```
 
+### [584. 寻找用户推荐人](https://leetcode-cn.com/problems/find-customer-referee/)
+
+```mysql
+-- SQL架构
+CREATE TABLE IF NOT EXISTS customer (id INT,name VARCHAR(25),referee_id INT);
+Truncate table customer;
+insert into customer (id, name, referee_id) values ('1', 'Will', NULL);
+insert into customer (id, name, referee_id) values ('2', 'Jane', NULL);
+insert into customer (id, name, referee_id) values ('3', 'Alex', '2');
+insert into customer (id, name, referee_id) values ('4', 'Bill', NULL);
+insert into customer (id, name, referee_id) values ('5', 'Zack', '1');
+insert into customer (id, name, referee_id) values ('6', 'Mark', '2');
+
+-- 给定表 customer ，里面保存了所有客户信息和他们的推荐人。
++------+------+-----------+
+| id   | name | referee_id|
++------+------+-----------+
+|    1 | Will |      NULL |
+|    2 | Jane |      NULL |
+|    3 | Alex |         2 |
+|    4 | Bill |      NULL |
+|    5 | Zack |         1 |
+|    6 | Mark |         2 |
++------+------+-----------+
+-- 写一个查询语句，返回一个编号列表，列表中编号的推荐人的编号都 不是 2。
+
+-- 对于上面的示例数据，结果为：
++------+
+| name |
++------+
+| Will |
+| Jane |
+| Bill |
+| Zack |
++------+
+
+-- SQL
+SELECT name
+FROM customer
+WHERE id NOT IN
+(SELECT id FROM customer WHERE referee_id = 2);
+
+SELECT name
+FROM customer
+WHERE  referee_id IS NULL OR referee_id <> 2;
+```
+
+### [614. 二级关注者](https://leetcode-cn.com/problems/second-degree-follower/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists follow (followee varchar(255), follower varchar(255));
+Truncate table follow;
+insert into follow (followee, follower) values ('A', 'B');
+insert into follow (followee, follower) values ('B', 'C');
+insert into follow (followee, follower) values ('B', 'D');
+insert into follow (followee, follower) values ('D', 'E');
+
+-- 在 facebook 中，表 follow 会有 2 个字段： followee, follower ，分别表示被关注者和关注者。请写一个 sql 查询语句，对每一个关注者，查询他的关注者数目。比方说：
++-------------+------------+
+| followee    | follower   |
++-------------+------------+
+|     A       |     B      |
+|     B       |     C      |
+|     B       |     D      |
+|     D       |     E      |
++-------------+------------+
+应该输出：
++-------------+------------+
+| follower    | num        |
++-------------+------------+
+|     B       |  2         |
+|     D       |  1         |
++-------------+------------+
+-- 解释：B 和 D 都在在 follower 字段中出现，作为被关注者，B 被 C 和 D 关注，D 被 E 关注。A 不在 follower 字段内，所以A不在输出列表中。
+-- 注意：被关注者永远不会被他 / 她自己关注。将结果按照字典序返回。
+
+-- SQL
+SELECT DISTINCT f1.follower AS follower, COUNT(DISTINCT f2.follower) AS num
+FROM follow f1 JOIN follow f2 ON f1.follower = f2.followee
+GROUP BY f1.follower;
+```
+
