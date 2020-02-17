@@ -985,6 +985,93 @@ FROM customer
 WHERE  referee_id IS NULL OR referee_id <> 2;
 ```
 
+### [586. 订单最多的客户](https://leetcode-cn.com/problems/customer-placing-the-largest-number-of-orders/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists orders (order_number int, customer_number int, order_date date, required_date date, shipped_date date, status char(15), comment char(200), key(order_number));
+Truncate table orders;
+insert into orders (order_number, customer_number) values ('1', '1');
+insert into orders (order_number, customer_number) values ('2', '2');
+insert into orders (order_number, customer_number) values ('3', '3');
+insert into orders (order_number, customer_number) values ('4', '3');
+
+-- 在表 orders 中找到订单数最多客户对应的 customer_number 。数据保证订单数最多的顾客恰好只有一位。
+-- 表 orders 定义如下：
+| Column            | Type      |
+|-------------------|-----------|
+| order_number (PK) | int       |
+| customer_number   | int       |
+| order_date        | date      |
+| required_date     | date      |
+| shipped_date      | date      |
+| status            | char(15)  |
+| comment           | char(200) |
+
+-- 样例输出
+| customer_number |
+|-----------------|
+| 3               |
+-- 解释：customer_number 为 '3' 的顾客有两个订单，比顾客 '1' 或者 '2' 都要多，因为他们只有一个订单
+所以结果是该顾客的 customer_number ，也就是 3 。
+
+-- SQL
+SELECT
+    customer_number
+FROM
+    orders
+GROUP BY 
+    customer_number
+ORDER BY
+    COUNT(customer_number) DESC
+LIMIT 1;
+```
+
+### [596. 超过5名学生的课](https://leetcode-cn.com/problems/classes-more-than-5-students/)
+
+```mysql
+-- SQL架构
+Create table If Not Exists courses (student varchar(255), class varchar(255));
+Truncate table courses;
+insert into courses (student, class) values ('A', 'Math');
+insert into courses (student, class) values ('B', 'English');
+insert into courses (student, class) values ('C', 'Math');
+insert into courses (student, class) values ('D', 'Biology');
+insert into courses (student, class) values ('E', 'Math');
+insert into courses (student, class) values ('F', 'Computer');
+insert into courses (student, class) values ('G', 'Math');
+insert into courses (student, class) values ('H', 'Math');
+insert into courses (student, class) values ('I', 'Math');
+
+-- 有一个courses 表 ，有: student (学生) 和 class (课程)。请列出所有超过或等于5名学生的课。例如,表:
++---------+------------+
+| student | class      |
++---------+------------+
+| A       | Math       |
+| B       | English    |
+| C       | Math       |
+| D       | Biology    |
+| E       | Math       |
+| F       | Computer   |
+| G       | Math       |
+| H       | Math       |
+| I       | Math       |
++---------+------------+
+-- 应该输出:
++---------+
+| class   |
++---------+
+| Math    |
++---------+
+-- Note:学生在每个课中不应被重复计算。
+
+-- SQL
+SELECT class
+FROM courses
+GROUP BY class
+HAVING COUNT(DISTINCT student) >= 5;
+```
+
 ### [614. 二级关注者](https://leetcode-cn.com/problems/second-degree-follower/)
 
 ```mysql
